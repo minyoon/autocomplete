@@ -1,10 +1,15 @@
+#!/usr/bin/env python
 """
     Ternary Search Tree implementation
-    Special thanks to
     https://github.com/minyoon0205/autocomplete
+    Special thanks to
     https://www.cs.upc.edu/~ps/downloads/tst/tst.html
     https://www.youtube.com/watch?v=CIGyewO7868
 """
+__author__ = "Minyoon Jung"
+__credits__ = ["Igor Ostrovsky"]
+
+__maintainer__ = "Minyoon Jung"
 
 class Ternary_Tree:
     """
@@ -16,11 +21,19 @@ class Ternary_Tree:
             self.left, self.mid, self.right = None,None,None
             self.isEnd = isEnd
 
-    # Constructor
+
+    """
+        Basic constructor
+    """
     def __init__(self):
-        # create a dummy node for root
+        # serves up as root node
         self.root = None 
 
+
+    """
+        Helper method for adding a word
+        which recursively travels down the tree
+    """
     def add(self, s, pos, node):
         if node==None:
             node = self.Tree_Node(s[pos], False)
@@ -45,8 +58,59 @@ class Ternary_Tree:
         """
         word = word.upper()
         root_node=self.add(word, 0, self.root)
+        # assign it to root, if not initialized
         if self.root == None:
             self.root=root_node
+
+    """
+        checks if the input word is used to build the tree
+        It has to be the exact original word for the construction
+    """
+    def contains(self, word):
+        if word == None or word == "":
+            return False
+        word = word.upper()
+        pos = 0 # position of a char
+        node = self.root # cursor
+        while node!=None:
+            if node.label > word[pos]:
+                node = node.left
+            elif node.label < word[pos]:
+                node = node.right
+            else:
+                pos+=1
+                if pos == len(word):
+                    return node.isEnd
+                node = node.mid
+        return False
+
+    """
+        Autofills the given prefix
+    """
+    def autofill(self, pref):
+        pref = pref.upper()
+        node = self.root
+        pos = 0
+        while node!=None:
+            if node.label > pref[pos]:
+                node = node.left
+            elif node.label < pref[pos]:
+                node = node.right
+            else:
+                pos+=1
+                if pos == len(pref):
+                    break
+                node = node.mid
+        print self.root_to_leaves
+
+    """
+        return all the root to leaves path
+        limit the number by 'num'
+    """
+    def root_to_leaves(self, root, num):
+        pass
+
+
 
     
     def print_tree(self):
@@ -65,7 +129,12 @@ if __name__=="__main__":
     tt.add_word('ABBA')
     tt.add_word('BCD')
     tt.add_word('ABCD')
+    tt.add_word('AB')
     tt.add_word('banana')
     tt.add_word('baby')
     tt.add_word('ant')
+    assert tt.contains('an') == False
+    assert tt.contains('ant') == True
+    assert tt.contains('abc') == False
+    assert tt.contains('ab') == True
     tt.print_tree()
