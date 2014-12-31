@@ -16,7 +16,7 @@ class Ternary_Tree:
         Tree Node for the ternary tree
     """
     class Tree_Node:
-        def __init__(self, label="", isEnd=True):
+        def __init__(self, label="", isEnd=False):
             self.label = label
             self.left, self.mid, self.right = None,None,None
             self.isEnd = isEnd
@@ -64,7 +64,7 @@ class Ternary_Tree:
 
     """
         checks if the input word is used to build the tree
-        It has to be the exact original word for the construction
+        It has to be the exact original word used for the construction
     """
     def contains(self, word):
         if word == None or word == "":
@@ -86,33 +86,62 @@ class Ternary_Tree:
 
     """
         Autofills the given prefix
+        Assumes the prefix is already found in the list
     """
     def autofill(self, pref):
         pref = pref.upper()
-        node = self.root
+        node = self.root 
+        # nodes that is lexicographically greater than or equal to
+        # need this to backtrack
+        stack = []
+        print_set = []
         pos = 0
-        while node!=None:
-            if node.label > pref[pos]:
-                node = node.left
-            elif node.label < pref[pos]:
-                node = node.right
-            else:
-                pos+=1
-                if pos == len(pref):
-                    break
-                node = node.mid
-        print self.root_to_leaves
+        if len(pref)>0:
+            while node!=None and pos<len(pref):
+                # add right child up
+                stack+=[(node.right, pref[:pos])]
+                # add mid child, with additional character label
+                stack+=[(node.mid, pref[:pos+1])]
+                # left child is not needed, because it's lexicographically smaller than the input
+                if node.label > pref[pos]:
+                    node = node.left
+                elif node.label < pref[pos]:
+                    node = node.right
+                else: # in this case, we found a match, so we dont need to backtrack to this point again
+                    # thus, pop the stack by one
+                    stack=stack[:-1] 
+                    pos+=1
+                    node = node.mid
+            print_set += [pref]
+        num_suggestion = 5 # number of suggestions
+        stack+=[(node, pref)] # add the subtree to be searched
+        print_set += self.root_to_leaves(node, stack, num_suggestion)
+        return print_set
+
 
     """
         return all the root to leaves path
         limit the number by 'num'
     """
-    def root_to_leaves(self, root, num):
-        pass
-
-
+    def root_to_leaves(self, root, stack, num=5):
+        new_visited = []
+        print_set = []
+        while stack and len(print_set)<num:
+            node, label = stack.pop()
+            if node!=None and node not in new_visited: 
+                new_visited.append(node)
+                stack += [(node.right, label)]
+                stack += [(node.mid, label+node.label)]
+                stack += [(node.left, label)]
+                if node.isEnd:
+                    label += node.label
+                    print_set+=[label]
+        return print_set
 
     
+    """
+        prints the tree in pre-order
+    """
     def print_tree(self):
         self.print_tree_helper(self.root,0, 'ROOT')
 
@@ -127,14 +156,16 @@ class Ternary_Tree:
 if __name__=="__main__":
     tt = Ternary_Tree()
     tt.add_word('ABBA')
-    tt.add_word('BCD')
     tt.add_word('ABCD')
     tt.add_word('AB')
+    tt.add_word('ant')
+    tt.add_word('BCD')
     tt.add_word('banana')
     tt.add_word('baby')
-    tt.add_word('ant')
     assert tt.contains('an') == False
     assert tt.contains('ant') == True
     assert tt.contains('abc') == False
     assert tt.contains('ab') == True
+    tt.autofill('AB')
+    tt.autofill('')
     tt.print_tree()
